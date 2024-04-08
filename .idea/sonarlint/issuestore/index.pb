@@ -43,3 +43,6 @@ M
 diplom_django/backend/apps.py,4\7\476e2afa5ee3d6e95a28e06c8d023c70e7c135f3
 N
 diplom_django/backend/admin.py,1\4\14820d209411f481b6b4f8fdd9a7c8edcd3b1ce8
+:
+
+.gitignore,a\5\a5cc2925ca8258af241be7e5b0381edf30266302
