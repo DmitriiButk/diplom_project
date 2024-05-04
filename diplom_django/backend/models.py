@@ -16,11 +16,6 @@ STATE_CHOICES = (
     ('canceled', 'Отменен'),
 )
 
-USER_TYPE_CHOICES = (
-    ('shop', 'Магазин'),
-    ('buyer', 'Покупатель'),
-)
-
 
 class User(AbstractUser):
     """
@@ -35,17 +30,18 @@ class User(AbstractUser):
     username_validator = UnicodeUsernameValidator()
     username = models.CharField(gettext_lazy('username'), max_length=150, validators=[username_validator],
                                 help_text=gettext_lazy(username_validator.message),
-                                error_messages={'unique': gettext_lazy('User with this username already exists')})
+                                error_messages={'unique': gettext_lazy('User with this username already exists')}
+                                )
     is_active = models.BooleanField(gettext_lazy('is_active'), default=False,
                                     help_text=gettext_lazy('Determines whether the user is active'))
-    type = models.CharField(verbose_name='Тип пользователя', choices=USER_TYPE_CHOICES, max_length=5, default='buyer')
+    type = models.CharField(verbose_name='Тип пользователя', max_length=5)
 
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Список пользователей'
 
     def __str__(self):
-        return f'{self.first_name} {self.last_name}'
+        return f'{self.first_name} {self.last_name} {self.email}'
 
 
 class Shop(models.Model):
@@ -58,7 +54,7 @@ class Shop(models.Model):
     status = models.BooleanField(default=True, verbose_name='Статус получения заказа')
 
     class Meta:
-        verbose_name = 'Название магазина'
+        verbose_name = 'Магазин'
         verbose_name_plural = "Список магазинов"
 
     def __str__(self):
@@ -84,8 +80,8 @@ class Product(models.Model):
     """
     Product model with additional fields.
     """
-    name = models.CharField(max_length=90, verbose_name='Название продукта.')
-    category = models.ForeignKey(Category, verbose_name='Категория продукта.', related_name='products',
+    name = models.CharField(max_length=90, verbose_name='Название продукта')
+    category = models.ForeignKey(Category, verbose_name='Категория продукта', related_name='products',
                                  blank=True, on_delete=models.CASCADE)
 
     class Meta:
@@ -123,7 +119,7 @@ class Parameter(models.Model):
     """
     Parameter model with additional fields.
     """
-    name = models.CharField(max_length=50, verbose_name='Параметр')
+    name = models.CharField(max_length=50, verbose_name='Название')
 
     class Meta:
         verbose_name = 'Название параметра'
@@ -147,10 +143,30 @@ class ProductParameter(models.Model):
     class Meta:
         verbose_name = 'Параметр'
         verbose_name_plural = 'Список параметров'
-        constraints = [models.UniqueConstraint(fields=['product_info', 'parameter'], name='unique_product_parameter')]
 
     def __str__(self):
         return f'{self.product_info.model} {self.parameter.name}'
+
+
+class Contact(models.Model):
+    """
+    Contact model with additional fields.
+    """
+    user = models.ForeignKey(User, verbose_name='Пользователь', related_name='contacts', blank=True,
+                             on_delete=models.CASCADE)
+    city = models.CharField(max_length=40, verbose_name='Город')
+    street = models.CharField(max_length=80, verbose_name='Улица')
+    house = models.CharField(max_length=10, verbose_name='Дом', blank=True)
+    frame = models.CharField(max_length=10, verbose_name='Корпус', blank=True)
+    apartment = models.CharField(max_length=10, verbose_name='Квартира', blank=True)
+    phone = models.CharField(max_length=20, verbose_name='Телефон')
+
+    class Meta:
+        verbose_name = 'Контакты пользователя'
+        verbose_name_plural = 'Список контактов пользователя'
+
+    def __str__(self):
+        return f'{self.user} {self.city} {self.street} {self.house}'
 
 
 class Order(models.Model):
@@ -160,15 +176,15 @@ class Order(models.Model):
     user = models.ForeignKey(User, verbose_name='Пользователь', related_name='orders', blank=True,
                              on_delete=models.CASCADE)
     dt = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=40, verbose_name='Статус заказа', choices=STATE_CHOICES)
-    contact = models.ForeignKey('Contact', verbose_name='Контакт', blank=True, null=True, on_delete=models.CASCADE)
+    status = models.CharField(max_length=20, verbose_name='Статус заказа', choices=STATE_CHOICES)
+    contact = models.ForeignKey(Contact, verbose_name='Контакт', blank=True, null=True, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = 'Заказ'
         verbose_name_plural = 'Список заказов'
 
     def __str__(self):
-        return f'{self.user} {self.dt}'
+        return f'{self.dt}'
 
 
 class OrderItem(models.Model):
@@ -178,37 +194,15 @@ class OrderItem(models.Model):
     order = models.ForeignKey(Order, verbose_name='Заказ', related_name='order_items', blank=True,
                               on_delete=models.CASCADE)
     product_info = models.ForeignKey(ProductInfo, verbose_name='Информация о продукте.', related_name='order_items',
-                                     blank=True,
-                                     on_delete=models.CASCADE)
-    shop = models.ForeignKey(Shop, verbose_name='Магазин', related_name='order_items', blank=True,
-                             on_delete=models.CASCADE)
+                                     blank=True, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(verbose_name='Количество')
 
     class Meta:
-        verbose_name = 'Информация о заказе'
-        verbose_name_plural = 'Список информации о заказе'
-        constraints = [models.UniqueConstraint(fields=['order_id', 'product_info', 'shop'], name='unique_order_item')]
-
-
-class Contact(models.Model):
-    """
-    Contact model with additional fields.
-    """
-    user = models.ForeignKey(User, verbose_name='Пользователь', related_name='contacts', blank=True,
-                             on_delete=models.CASCADE)
-    city = models.CharField(max_length=30, verbose_name='Город')
-    street = models.CharField(max_length=50, verbose_name='Улица')
-    house = models.CharField(max_length=10, verbose_name='Дом')
-    frame = models.CharField(max_length=10, verbose_name='Корпус')
-    apartment = models.CharField(max_length=10, verbose_name='Квартира')
-    phone = models.CharField(max_length=20, verbose_name='Телефон')
-
-    class Meta:
-        verbose_name = 'Контакты пользователя'
-        verbose_name_plural = 'Список контактов пользователя'
+        verbose_name = 'Заказанная позиция'
+        verbose_name_plural = 'Список заказанных позиций'
 
     def __str__(self):
-        return f'{self.user} {self.city} {self.street} {self.house} {self.phone}'
+        return f'id заказа - {self.order.id}. Товар: {self.product_info.model} {self.quantity}'
 
 
 class ConfirmEmailToken(models.Model):
@@ -218,6 +212,7 @@ class ConfirmEmailToken(models.Model):
 
     @staticmethod
     def generate_key():
+        """Generate a unique token for email confirmation."""
         return get_token_generator().generate_token()
 
     user = models.ForeignKey(User, related_name='confirm_email_tokens',
@@ -226,12 +221,20 @@ class ConfirmEmailToken(models.Model):
                              )
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=gettext_lazy('When was this token generated'))
-    token = models.CharField(max_length=40, db_index=True, unique=True, verbose_name=gettext_lazy('The token itself'))
+    key = models.CharField(max_length=60, db_index=True, unique=True, verbose_name=gettext_lazy('The token itself'))
 
     def save(self, *args, **kwargs):
-        if not self.token:
-            self.token = self.generate_key()
+        """
+        Save the ConfirmEmailToken instance. If a key has not been provided,
+        generate one using the static method `generate_key`.
+        """
+        if not self.key:
+            self.key = self.generate_key()
         return super(ConfirmEmailToken, self).save(*args, **kwargs)
 
     def __str__(self):
         return f'Token for user {self.user}'
+
+    class Meta:
+        verbose_name = 'Токен подтверждения почты'
+        verbose_name_plural = 'Список токенов подтверждения почты'
