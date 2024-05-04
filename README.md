@@ -47,8 +47,8 @@ python manage.py migrate
 ----------------------------------------------------------------
 *[Use the API documentation](https://documenter.getpostman.com/view/31517712/2sA3JFCQpU#97c8475a-301c-4f85-bffa-4446b2619179)*
 ----------------------------------------------------------------
+*You need to create 2 users of different types (buyer and shop) to fully manage the API.*
 
-----------------------------------------------------------------
 *User:*
 * *We register a new user with the required fields, and also be sure to indicate the user type (buyer or shop), remember the token to confirm your email*
 * *Confirm your email and change the status to is_active.*
