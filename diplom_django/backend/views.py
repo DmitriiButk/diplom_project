@@ -51,7 +51,6 @@ class RegisterAccountView(APIView):
                     errors_list.append(error)
                 return JsonResponse({'status': False, 'error': errors_list})
             else:
-                print(request.data['type'].lower())
                 if request.data['type'].lower() != 'shop' and request.data['type'].lower() != 'buyer':
                     return JsonResponse({'status': False, 'error': 'Invalid type'})
                 user_serializer = UserSerializer(data=request.data)
