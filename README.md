@@ -72,6 +72,7 @@ pytest
 ----------------------------------------------------------------
 *The API documentation has all the information and all the required fields to fill out.*
 ----------------------------------------------------------------
+*The project was written in python 3.11*
 
 
 
