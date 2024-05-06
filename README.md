@@ -26,7 +26,7 @@ git clone https://github.com/DmitriiButk/diplom_project.git
 ```
 
 ```shell
-cd diplom_project
+cd diplom_project\diplom_django
 ```
 
 ```shell
@@ -43,6 +43,11 @@ python manage.py makemigrations
 
 ```shell
 python manage.py migrate
+```
+
+*Run tests:*
+```shell
+pytest
 ```
 ----------------------------------------------------------------
 *[Use the API documentation](https://documenter.getpostman.com/view/31517712/2sA3JFCQpU#97c8475a-301c-4f85-bffa-4446b2619179)*
@@ -67,7 +72,6 @@ python manage.py migrate
 ----------------------------------------------------------------
 *The API documentation has all the information and all the required fields to fill out.*
 ----------------------------------------------------------------
-
 
 
 
