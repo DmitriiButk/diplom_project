@@ -1,4 +1,4 @@
-# ***Diploma project for the profession Python developer ìAPI Service for ordering goods.î***
+# ***Diploma project for the profession Python developer ‚ÄúAPI Service for ordering goods.‚Äù***
 
 # *Description*:
 
@@ -43,6 +43,10 @@ python manage.py makemigrations
 
 ```shell
 python manage.py migrate
+```
+
+```shell
+python manage.py runserver
 ```
 
 *Run tests:*
