@@ -605,7 +605,7 @@ class ContactView(APIView):
             return JsonResponse({'status': False, 'error': 'Not authenticated'}, status=403)
 
         if {'city', 'street', 'phone'} <= set(request.data):
-            request.data._mutable = True
+            request.POST._mutable = True
             request.data.update({'user': request.user.id})
             serializer = ContactSerializer(data=request.data)
 
