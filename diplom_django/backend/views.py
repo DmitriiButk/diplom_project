@@ -14,6 +14,8 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
+import psycopg2
+from django.views.decorators.http import require_http_methods
 
 from .models import Shop, Category, Product, ProductInfo, Parameter, ProductParameter, Order, OrderItem, Contact, \
     ConfirmEmailToken
@@ -93,7 +95,7 @@ class ConfirmEmailView(APIView):
                 token.user.is_active = True
                 token.user.save()
                 token.delete()
-                return JsonResponse({'status': True, 'message':'Your status now is_active'})
+                return JsonResponse({'status': True, 'message': 'Your status now is_active'})
             else:
                 return JsonResponse({'status': False, 'error': 'Invalid token or email'})
         return JsonResponse({'status': False, 'error': 'Invalid arguments'})
@@ -158,7 +160,8 @@ class AccountDetailsView(APIView):
         user_serializer = UserSerializer(request.user, data=request.data, partial=True)
         if user_serializer.is_valid():
             user_serializer.save()
-            return JsonResponse({'status': True, 'message': 'user with id: {}, details updated'.format(request.user.id)})
+            return JsonResponse(
+                {'status': True, 'message': 'user with id: {}, details updated'.format(request.user.id)})
         else:
             return JsonResponse({'status': False, 'error': user_serializer.errors})
 
@@ -741,3 +744,51 @@ class OrderView(APIView):
                     else:
                         return JsonResponse({'status': False, 'error': 'Order not updated'}, status=400)
         return JsonResponse({'status': False, 'error': 'Invalid arguments'})
+
+
+def truncate_table(table_name):
+    '''Function for deleting data from a table and resetting the identifier.'''
+    with psycopg2.connect(database='diplom_db', user='postgres', password='postgres') as conn:
+        with conn.cursor() as cur:
+            cur.execute('''TRUNCATE TABLE {} CASCADE;'''.format(table_name))
+            cur.execute('''ALTER SEQUENCE {}_id_seq RESTART WITH 1;'''.format(table_name))
+            conn.commit()
+
+
+@require_http_methods('GET')
+def upload_goods(request):
+    '''Function for loading ready data into a table. When called again, the data is reset.'''
+    ulr_for_upload = 'https://raw.githubusercontent.com/netology-code/python-final-diplom/master/data/shop1.yaml'
+    stream = get(ulr_for_upload).content
+    data = yaml_load(stream, Loader=Loader)
+    shop, _ = Shop.objects.get_or_create(name=data['shop'])
+    for category in data['categories']:
+        category_object, _ = Category.objects.get_or_create(id=category['id'], name=category['name'])
+        category_object.shops.add(shop.id)
+        category_object.save()
+    product = Product.objects.all()
+    if product:
+        truncate_table('backend_productinfo')
+        truncate_table('backend_product')
+        truncate_table('backend_shop')
+        truncate_table('backend_category')
+        truncate_table('backend_category_shops')
+        truncate_table('backend_parameter')
+        truncate_table('backend_productparameter')
+        return JsonResponse(
+            {'status': 'The data was already in the table, the data was deleted, make a new query to load the data.'})
+    for item in data['goods']:
+        product, _ = Product.objects.get_or_create(name=item['name'], category_id=item['category'])
+        product_info, _ = ProductInfo.objects.get_or_create(product_id=product.id,
+                                                            external_id=item['id'],
+                                                            model=item['model'],
+                                                            price=item['price'],
+                                                            price_rrc=item['price_rrc'],
+                                                            quantity=item['quantity'],
+                                                            shop_id=shop.id)
+        for name, value in item['parameters'].items():
+            parameter_object, _ = Parameter.objects.get_or_create(name=name)
+            ProductParameter.objects.get_or_create(product_info_id=product_info.id,
+                                                   parameter_id=parameter_object.id,
+                                                   value=value)
+    return JsonResponse({'status': 'products have been uploaded to the database'})
