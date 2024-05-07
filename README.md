@@ -72,7 +72,10 @@ pytest
 
 *Partner:*
 * *You can change the partner status, find out information about the order, and also update the price list.*
-* *To upload ready-made product data, in the partner tab using the POST method and use the seller token. Here is the link https://raw.githubusercontent.com/netology-code/python-final-diplom/master/data/shop1.yaml*
+
+*Link to download ready data to the database:* *http://127.0.0.1:8000/api/v1/upload_goods/*
+* (*Important:*
+The first time you click on the link, the data is recorded; the second time, the data is deleted. The default method is GET (you can change it to any other))
 ----------------------------------------------------------------
 *The API documentation has all the information and all the required fields to fill out.*
 ----------------------------------------------------------------
