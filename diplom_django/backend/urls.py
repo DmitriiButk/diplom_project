@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import RegisterAccountView, ConfirmEmailView, AccountDetailsView, LoginAccountView, ContactView, \
     CategoryView, ShopView, BasketView, OrderView, PartnerOrdersView, PartnerStatusView, PartnerUpdateView, \
-    ProductInfoView
+    ProductInfoView, upload_goods
 from django_rest_passwordreset.views import reset_password_request_token, reset_password_confirm
 
 
@@ -23,4 +23,5 @@ urlpatterns = [
     path('products/', ProductInfoView.as_view(), name='products'),
     path('basket/', BasketView.as_view(), name='basket'),
     path('order/', OrderView.as_view(), name='order'),
+    path('upload_goods/', upload_goods, name='upload_goods'),
 ]
